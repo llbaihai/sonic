@@ -1,0 +1,11 @@
+[project]
+name = "sonic-backend"
+version = "0.1.0"
+description = "SONIC Android non-AI business API"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-ra"
+

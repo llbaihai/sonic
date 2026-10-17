@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- SONIC operate contract: white neutral workspace, black commands, coral playhead, mint/lilac/sky tracks; real audio and note data only. -->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>SONIC MVP2 · 声音工作区</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/models.css">
+  <script src="/vendor/lucide.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="/" aria-label="SONIC 工作区">SONIC<span class="brand-dot"></span></a>
+    <span class="workspace-name">MVP2 · 旋律编配</span>
+    <a class="workspace-model-link" href="/mobile/"><i data-lucide="smartphone" aria-hidden="true"></i>手机版</a>
+    <a class="workspace-model-link" href="/openai.html"><i data-lucide="plug" aria-hidden="true"></i>第三方接口</a>
+    <a class="workspace-model-link" href="/models.html"><i data-lucide="sliders-horizontal" aria-hidden="true"></i>模型配置</a>
+    <div class="device-state"><span class="status-dot"></span><i data-lucide="radio" aria-hidden="true"></i><span id="hardwareStatus">设备未连接</span></div>
+  </header>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="素材库">
+      <div class="section-heading"><h2>声音素材</h2><span id="sourceCount" class="count">0</span></div>
+      <div class="source-actions">
+        <button id="uploadButton" class="button primary"><i data-lucide="upload" aria-hidden="true"></i>导入音频</button>
+        <input id="fileInput" type="file" accept="audio/*,.wav,.wave,.flac,.aiff,.aif,.aifc,.mp3,.ogg,.oga,.opus,.m4a,.aac,.webm" hidden>
+        <button id="recordButton" class="button"><i data-lucide="mic" aria-hidden="true"></i><span>麦克风录音</span></button>
+        <button id="sampleButton" class="button quiet"><i data-lucide="music-2" aria-hidden="true"></i>载入测试旋律</button>
+      </div>
+      <div id="recordingState" class="recording-state" hidden><span class="record-dot"></span><strong id="recordingTime">00:00</strong><button id="recordMarker" class="icon-button" title="添加录音标记" aria-label="添加录音标记"><i data-lucide="flag" aria-hidden="true"></i></button><span id="recordingMarkers">0 个标记</span></div>
+      <p id="uploadState" class="status-text" role="status"></p>
+      <div id="sessionList" class="session-list"></div>
+      <div class="sidebar-bottom"><i data-lucide="hard-drive" aria-hidden="true"></i><span>本地素材库</span><button id="refreshButton" class="icon-button" title="刷新素材与连接状态" aria-label="刷新素材与连接状态"><i data-lucide="refresh-cw" aria-hidden="true"></i></button></div>
+    </aside>
+    <main>
+      <div id="errorBanner" class="notice error" role="alert" hidden><i data-lucide="circle-alert" aria-hidden="true"></i><span id="errorText"></span><button id="dismissError" class="icon-button" title="关闭错误" aria-label="关闭错误"><i data-lucide="x" aria-hidden="true"></i></button></div>
+      <section class="source-section" aria-labelledby="sourceTitle">
+        <div class="source-heading"><div><h1 id="sourceTitle">新建声音作品</h1><div class="source-meta"><span id="sourceTag" class="tag">未选择素材</span><span id="sourceMeta">—</span></div></div><button id="addMarker" class="button small" disabled><i data-lucide="flag" aria-hidden="true"></i>添加标记</button></div>
+        <div class="waveform-stage"><canvas id="sourceWaveform" aria-label="原始音频波形"></canvas><div id="waveformEmpty" class="canvas-empty"><i data-lucide="audio-lines" aria-hidden="true"></i><span>暂无音频</span></div></div>
+        <div class="source-transport"><audio id="sourceAudio" controls preload="metadata" aria-label="播放原始音频"></audio><div id="markerList" class="marker-list" aria-label="素材标记"></div></div>
+      </section>
+      <div class="creation-grid">
+        <section class="analysis-section" aria-labelledby="analysisTitle">
+          <div class="section-heading"><h2 id="analysisTitle">旋律分析</h2><span id="analysisStatus" class="muted">pYIN</span></div>
+          <div class="pitch-settings"><label for="pitchProvider">素材分析</label><select id="pitchProvider"><option value="none">生活素材 · 不提取旋律</option><option value="pyin" selected>哼唱 · pYIN 本机</option><option value="basic_pitch" disabled>哼唱 · BasicPitch 服务器</option></select></div>
+          <p id="pitchConsent" class="muted" hidden>所选音频将发送到团队的 AutoDL 服务器进行转录。</p>
+          <div class="analysis-actions"><label class="consent"><input id="useGemini" type="checkbox" disabled><span id="geminiConsentLabel">同意将此段音频发送给所选模型分析</span></label><button id="analyzeButton" class="button primary" disabled><i data-lucide="scan-line" aria-hidden="true"></i><span>分析声音</span></button></div>
+          <div id="geminiStatus" class="muted provider-status">正在检查模型配置</div>
+          <div class="analysis-tabs" role="tablist" aria-label="旋律分析视图"><button id="notesTab" role="tab" aria-selected="true" aria-controls="notesPanel">音符</button><button id="abcTab" role="tab" aria-selected="false" aria-controls="abcPanel">ABC 乐谱</button></div>
+          <div id="notesPanel" role="tabpanel" aria-labelledby="notesTab"><div class="piano-stage"><canvas id="notesCanvas" aria-label="分析得到的音符时间图"></canvas><span id="notesEmpty" class="canvas-empty">等待旋律分析</span></div><div id="analysisSummary" class="analysis-summary muted">—</div></div>
+          <div id="abcPanel" role="tabpanel" aria-labelledby="abcTab" hidden><label class="sr-only" for="abcEditor">ABC 乐谱</label><textarea id="abcEditor" class="abc-editor" spellcheck="false" placeholder="ABC 乐谱" disabled></textarea><button id="downloadAbc" class="button small quiet" disabled><i data-lucide="download" aria-hidden="true"></i>下载 ABC</button></div>
+          <div id="analysisDescription" class="analysis-description" hidden></div><div id="analysisWarnings" class="warning-text" role="status"></div>
+          <div id="pitchDownloads" class="download-actions pitch-downloads" hidden><a id="pitchMidi" class="button small quiet"><i data-lucide="download" aria-hidden="true"></i>MIDI</a><a id="pitchCsv" class="button small quiet"><i data-lucide="download" aria-hidden="true"></i>音符 CSV</a></div>
+        </section>
+        <section class="generation-section" aria-labelledby="generationTitle">
+          <div class="section-heading"><h2 id="generationTitle">生成音乐</h2><i data-lucide="sparkles" class="heading-icon" aria-hidden="true"></i></div>
+          <label class="field-label" for="genreInput">音乐大方向</label><select id="genreInput"><option value="classical">古典</option><option value="rock">摇滚</option><option value="pop" selected>流行</option><option value="electronic">电子</option></select>
+          <label class="field-label" for="styleInput">推荐提示词 · 可编辑</label><textarea id="styleInput" rows="4" placeholder="分析后显示 Gemini 推荐词，可修改后再生成">温暖的钢琴，轻柔节奏</textarea>
+          <details id="recommendationPanel" hidden><summary>Gemini 原始推荐</summary><p id="recommendationText" class="muted"></p></details>
+          <div class="remote-tools"><button id="probeRemote" class="button small"><i data-lucide="plug" aria-hidden="true"></i><span>连接服务器</span></button><span id="remoteStatus" class="muted" role="status">尚未检查</span></div>
+          <div class="form-row"><label>生成器<select id="providerInput"><option value="mma" selected>MMA＋FluidSynth · AutoDL</option><option value="local">本地音符合成</option><option value="yue2" disabled>YuE2 · 尚未连接</option></select></label><label><span id="durationLabel">时长</span><select id="durationInput"><option value="16">16 秒</option><option value="20" selected>20 秒</option><option value="30">30 秒</option></select></label></div>
+          <div id="mmaControls">
+            <div class="form-row"><label>伴奏<select id="mmaGroove"><option value="Ballad">轻柔流行</option><option value="Ballad1">柱式和弦</option><option value="BalladSus">弦乐铺底</option></select></label><label>BPM<input id="mmaBpm" type="number" min="60" max="140" value="96" title="默认 96，可按录音节奏调整"></label></div>
+            <label class="field-label" for="mmaChords">和弦循环</label><input id="mmaChords" type="text" maxlength="512" placeholder="自动配和弦，或输入 C Am F G7">
+          </div>
+          <div class="generation-options"><label class="checkbox-label" title="YuE2 参考提供的 ABC 乐谱；旋律保真需试听核对"><input id="keepMelody" type="checkbox" checked>保留旋律</label><label class="source-gain-label" for="sourceGain">原声混入 <output id="sourceGainValue">0%</output></label><input id="sourceGain" type="range" min="0" max="1" step="0.05" value="0" aria-label="原声混入音量"></div>
+          <button id="generateButton" class="button primary generate-button" disabled><i data-lucide="wand-sparkles" aria-hidden="true"></i><span>生成音乐</span></button>
+          <div id="jobStatus" class="job-status" role="status"><span id="jobStage">尚未生成</span><span id="jobProvider"></span></div><progress id="jobProgress" max="100" value="0" hidden aria-label="生成进度"></progress>
+        </section>
+      </div>
+      <section class="editor-section" aria-labelledby="editorTitle">
+        <div class="remote-tools"><button id="separateButton" class="button small" hidden><i data-lucide="split" aria-hidden="true"></i><span>分轨编辑</span></button><a id="liveEditorLink" class="button small" hidden>打开六轨编辑器</a><span id="separationStatus" class="muted" role="status"></span></div>
+        <div class="editor-heading"><div class="section-heading"><h2 id="editorTitle">轨道编辑器</h2><span id="trackCount" class="count">0</span></div><label class="result-picker">作品<select id="jobSelect" aria-label="选择生成作品"><option value="">暂无作品</option></select></label><span id="resultProvider" class="tag" hidden></span></div>
+        <div class="editor-transport"><button id="rewindButton" class="icon-button" title="回到开始" aria-label="回到开始" disabled><i data-lucide="skip-back" aria-hidden="true"></i></button><button id="playButton" class="icon-button play-button" title="播放" aria-label="播放" disabled><i data-lucide="play" aria-hidden="true"></i></button><span class="time-readout"><strong id="currentTime">0:00</strong><span>/ <span id="totalTime">0:00</span></span></span><label class="sr-only" for="seekInput">播放位置</label><input id="seekInput" type="range" value="0" min="0" max="0" step="0.01" disabled><label class="master-volume" title="总音量"><i data-lucide="volume-2" aria-hidden="true"></i><span class="sr-only">总音量</span><input id="masterVolume" type="range" min="0" max="1" step="0.01" value="0.8"></label></div>
+        <div id="trackList" class="track-list"><div class="editor-empty"><i data-lucide="audio-lines" aria-hidden="true"></i><span>暂无生成轨道</span></div></div>
+        <div class="editor-footer"><span id="resultState" class="muted">—</span><div class="download-actions"><a id="mmaMidi" class="button small" hidden><i data-lucide="download" aria-hidden="true"></i>伴奏 MIDI</a><a id="mmaMelody" class="button small" hidden><i data-lucide="download" aria-hidden="true"></i>旋律 MIDI</a><button id="downloadWav" class="button small" disabled><i data-lucide="download" aria-hidden="true"></i>导出混音 WAV</button><a id="resultAbc" class="button small disabled" aria-disabled="true"><i data-lucide="file-music" aria-hidden="true"></i>ABC</a><a id="resultProject" class="button small disabled" aria-disabled="true"><i data-lucide="folder-down" aria-hidden="true"></i>项目</a></div></div>
+      </section>
+      <footer class="workspace-footer"><span>SONIC</span><span id="connectionStatus">连接中</span></footer>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "active_id": "translation",
+  "profiles": [
+    {
+      "id": "translation",
+      "name": "Translation",
+      "protocol": "openai_compatible",
+      "base_url": "https://YOUR_TEXT_API_HOST/v1",
+      "model": "REPLACE_MODEL",
+      "api_key": ""
+    }
+  ]
+}

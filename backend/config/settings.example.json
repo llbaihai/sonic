@@ -1,0 +1,11 @@
+{
+  "ssh_host": "YOUR_GPU_HOST",
+  "ssh_port": 22,
+  "ssh_user": "YOUR_SSH_USER",
+  "ssh_password": "",
+  "ssh_fingerprint": "SHA256:REPLACE_WITH_VERIFIED_HOST_FINGERPRINT",
+  "gemini_model": "REPLACE_WITH_AVAILABLE_OFFICIAL_MODEL",
+  "gemini_mode": "official",
+  "gemini_official_api_key": "",
+  "yue2_project": "/srv/sonic/YuE"
+}

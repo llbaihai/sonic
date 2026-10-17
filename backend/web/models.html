@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>模型配置 · SONIC</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/models.css">
+  <script src="/vendor/lucide.js" defer></script>
+  <script src="/models.js" defer></script>
+</head>
+<body class="models-page">
+  <header class="app-header">
+    <a class="brand" href="/" aria-label="SONIC 工作区">SONIC<span class="brand-dot"></span></a>
+    <nav class="header-nav" aria-label="主导航"><a href="/"><i data-lucide="audio-lines" aria-hidden="true"></i>声音工作区</a><a href="/models.html" aria-current="page"><i data-lucide="sliders-horizontal" aria-hidden="true"></i>模型配置</a></nav>
+    <a class="local-label" href="/openai.html"><i data-lucide="plug" aria-hidden="true"></i>第三方接口</a>
+  </header>
+  <main class="models-main">
+    <div class="models-heading"><div><h1>模型配置</h1><p id="activeSummary" class="active-summary">正在读取配置</p></div><button id="newProfile" class="button primary"><i data-lucide="plus" aria-hidden="true"></i>新建配置</button></div>
+    <div id="pageNotice" class="model-notice" role="status" hidden></div>
+    <div class="models-layout">
+      <aside class="profiles-pane" aria-label="已保存的接口配置"><div class="profile-list-heading"><h2>接口配置</h2><span id="profileCount" class="count">0</span><button id="refreshProfiles" class="icon-button" title="刷新配置" aria-label="刷新配置"><i data-lucide="refresh-cw" aria-hidden="true"></i></button></div><div id="profileList" class="profile-list" aria-busy="true"></div></aside>
+      <section class="profile-editor" aria-labelledby="editorHeading">
+        <div class="profile-editor-heading"><div><h2 id="editorHeading">新建配置</h2><span id="editorState" class="editor-state">尚未保存</span></div><button id="deleteProfile" class="icon-button danger" title="删除此配置" aria-label="删除此配置" hidden><i data-lucide="trash-2" aria-hidden="true"></i></button></div>
+        <form id="profileForm" autocomplete="off">
+          <div class="model-field"><label for="profileName">配置名称</label><input id="profileName" name="name" maxlength="100" placeholder="可选，留空使用模型名称"></div>
+          <fieldset class="protocol-field"><legend>接口协议</legend><div class="protocol-switch"><label><input type="radio" name="protocol" value="openai_compatible" checked><span>OpenAI 兼容</span></label><label><input type="radio" name="protocol" value="google_compatible"><span>Gemini 原生</span></label></div></fieldset>
+          <div class="model-field"><label for="baseUrl">接口地址 <span>Base URL</span></label><input id="baseUrl" name="base_url" type="url" maxlength="2048" placeholder="https://api.example.com/v1" spellcheck="false" required></div>
+          <div class="model-field"><div class="field-heading"><label for="apiKey">API Key</label><span id="keyState" class="field-state">未填写</span></div><div class="key-input"><input id="apiKey" name="api_key" type="password" autocomplete="new-password" placeholder="粘贴 API Key" spellcheck="false"><button id="toggleKey" type="button" class="icon-button" title="显示本次输入的密钥" aria-label="显示本次输入的密钥" aria-pressed="false"><i data-lucide="eye" aria-hidden="true"></i></button></div></div>
+          <div class="model-field"><label for="modelName">模型名称</label><div class="model-input-row"><input id="modelName" name="model" maxlength="200" placeholder="填写平台提供的模型名称" spellcheck="false" required><button id="fetchModels" type="button" class="button"><i data-lucide="list" aria-hidden="true"></i>获取模型</button></div><select id="discoveredModels" aria-label="已获取的模型" hidden></select><span id="modelsMessage" class="field-state" role="status"></span></div>
+          <div id="legacyNotice" class="legacy-notice" hidden><i data-lucide="file-lock-2" aria-hidden="true"></i><span>原有配置 · 保留在本机配置文件中</span></div>
+          <div class="save-actions"><button id="saveActivate" type="submit" class="button primary" data-activate="true"><i data-lucide="check" aria-hidden="true"></i>保存并启用</button><button id="saveOnly" type="submit" class="button"><i data-lucide="save" aria-hidden="true"></i>保存配置</button><button id="activateLegacy" type="button" class="button primary" hidden><i data-lucide="check" aria-hidden="true"></i>启用此配置</button></div>
+        </form>
+        <section class="connection-tests" aria-labelledby="testHeading"><div class="test-heading"><h2 id="testHeading">连接测试</h2><span class="field-state">少量 API 用量，按平台计费</span></div><div class="test-row"><i data-lucide="message-square" aria-hidden="true"></i><div class="test-copy"><h3>文字连通</h3><p id="textTestResult" role="status">尚未测试</p></div><button id="testText" class="button small"><i data-lucide="play" aria-hidden="true"></i>测试文字</button></div><div class="test-row"><i data-lucide="audio-lines" aria-hidden="true"></i><div class="test-copy"><h3>音频理解</h3><p id="audioTestResult" role="status">尚未测试 · 使用合成测试旋律</p></div><button id="testAudio" class="button small"><i data-lucide="play" aria-hidden="true"></i>测试音频</button></div></section>
+        <div class="model-footer"><i data-lucide="lock-keyhole" aria-hidden="true"></i><span>密钥仅保存在本机，测试与分析时发送至对应接口。</span></div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

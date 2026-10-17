@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Record">
+<rect x="0.5" y="0.5" width="33" height="33" rx="16.5" fill="#FFF8F6"/>
+<rect x="0.5" y="0.5" width="33" height="33" rx="16.5" stroke="#F7DCD5"/>
+<circle id="Recording indicator" cx="17" cy="17" r="6" fill="#E98A78"/>
+</g>
+</svg>

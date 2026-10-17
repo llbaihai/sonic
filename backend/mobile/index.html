@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#FEF1E7"><title>SONIC · 声音创作</title><link rel="stylesheet" href="/mobile/mobile.css"><script src="/vendor/lucide.js" defer></script></head>
+<body>
+<link rel="stylesheet" href="/mobile/genres.css">
+<link rel="stylesheet" href="/mobile/work-details.css">
+<link rel="stylesheet" href="/mobile/source-player.css">
+<link rel="stylesheet" href="/mobile/integrated.css?v=9">
+<header><a href="/mobile/" class="brand"><img src="/mobile/assets/sonic-logo.png" alt="" width="32" height="32"><span>SONIC</span></a><a href="/models.html" title="模型配置" aria-label="模型配置"><i data-lucide="settings-2"></i></a></header>
+<main id="app"></main>
+<nav><button data-nav="library"><i data-lucide="audio-lines"></i>声音</button><button data-nav="hardware"><i data-lucide="bluetooth"></i>录音豆</button><button data-nav="works"><i data-lucide="music-2"></i>作品</button><button data-nav="account"><i data-lucide="user-round"></i>我的</button></nav>
+<input id="files" type="file" accept="audio/*" multiple hidden>
+<dialog id="createDialog"><form id="createForm">
+ <h2>组合你的声音</h2><p id="selectionNames"></p>
+ <fieldset class="genre-field"><legend>音乐大方向</legend><div id="genreOptions" class="genre-options"><label><input type="radio" name="genre" value="classical">古典</label><label><input type="radio" name="genre" value="rock">摇滚</label><label><input type="radio" name="genre" value="pop" checked>流行</label><label><input type="radio" name="genre" value="electronic">电子</label></div></fieldset>
+ <label>主旋律<select id="melody"><option value="">无哼唱 · AI 创作旋律</option></select></label>
+ <label class="consent"><input id="consent" type="checkbox">将选中音频发送给当前 AI 分析，使用已配置接口额度</label>
+ <button type="button" id="analyzeSources"><i data-lucide="sparkles" aria-hidden="true"></i>分析并推荐</button><p id="recommendStatus" role="status" class="note"></p>
+ <label for="style"><span>推荐提示词 <small id="promptOrigin">可手动填写</small></span><textarea id="style" maxlength="1250" rows="5" placeholder="分析后在这里展示 Gemini 推荐词；你可以编辑后再生成"></textarea></label>
+ <details id="abcPanel" hidden><summary>ABC 乐谱 · 可编辑</summary><textarea id="mobileAbc" rows="5" maxlength="20000" spellcheck="false" aria-label="ABC 乐谱"></textarea></details>
+ <label>目标时长<select id="duration"><option value="60">60 秒</option><option value="120" selected>120 秒</option><option value="180">180 秒</option></select></label>
+ <label>Seed<input id="seed" type="number" min="0" max="2147483647" value="831002"></label>
+ <p class="note">原声默认关闭；有哼唱时使用最终提示词与 ABC，无哼唱时按提示词创作。</p>
+ <div class="actions"><button type="button" id="cancelCreate">取消</button><button class="primary" type="submit" id="confirmGenerate">确认生成</button></div>
+</form></dialog>
+<dialog id="renameDialog" class="rename-dialog" aria-labelledby="renameTitle"><form id="renameForm">
+ <h2 id="renameTitle">修改名称</h2>
+ <label for="renameInput" class="rename-label">名称</label><input id="renameInput" name="name" maxlength="100" autocomplete="off" required>
+ <div class="rename-actions"><button id="renameCancel" type="button" aria-label="取消修改"><i data-lucide="x" aria-hidden="true"></i></button><button type="submit" class="rename-save" aria-label="确认修改"><i data-lucide="check" aria-hidden="true"></i></button></div>
+</form></dialog>
+<p id="notice" role="status"></p><script src="/mobile/audio-encode.js" defer></script><script src="/mobile/native-request.js?v=9" defer></script><script src="/mobile/source-player.js?v=9" defer></script><script src="/mobile/mobile.js?v=9" defer></script><script src="/mobile/integrated.js?v=9" defer></script>
+</body></html>

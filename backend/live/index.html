@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SONIC Live Studio — 即时试听</title>
+<link rel="stylesheet" href="/live/style.css?v=9.1">
+<script src="/vendor/lucide.js" defer></script>
+</head>
+<body>
+<main class="shell">
+<header class="header">
+ <div class="brand"><a href="/" aria-label="SONIC 工作区"><h1>SONIC</h1></a><span class="workspace-name">六轨编辑</span></div>
+ <a href="/" class="back-workspace"><i data-lucide="arrow-left" aria-hidden="true"></i>返回工作区</a>
+ <div class="project"><label for="project">歌曲工程</label><select id="project"><option>加载中…</option></select><button id="load" type="button">加载歌曲</button></div>
+</header>
+<section class="panel player-panel" aria-label="即时试听">
+ <div class="paneltitle"><h2>混音试听</h2><span class="pill" id="engineStatus">等待加载</span></div>
+ <div class="playerbar">
+   <button class="primary play" type="button" id="play" disabled><i data-lucide="play" aria-hidden="true"></i>播放</button>
+   <label class="sr" for="seek">播放进度</label><input type="range" id="seek" min="0" max="100" step="0.01" value="0" disabled>
+   <span id="clock" class="clock">0:00 / 0:00</span>
+ </div>
+ <div class="tiny">提示：首次播放需要下载原曲并解码；首次编辑某条音轨会自动加载该条 WAV。按停止/播放不需要重新生成歌曲。</div>
+</section>
+<section class="panel" aria-label="轨道编辑时间轴">
+ <div class="toolbar"><div class="tools"><button id="selectMode" disabled title="框选音轨片段"><i data-lucide="scan" aria-hidden="true"></i>框选区间</button></div><div class="tools"><label for="zoom">缩放</label><input type="range" min="20" max="100" value="52" step="4" id="zoom"><span id="zoomNum">52 px/s</span></div></div>
+ <div id="scroll" class="scroll"><div id="tracks"><div class="placeholder">正在查询歌曲工程与波形…</div></div></div>
+</section>
+<div class="columns">
+ <section class="panel editor" aria-label="音频片段编辑">
+  <h2>片段编辑</h2>
+  <div class="inputs"><label>音轨<input id="trackName" readonly value="尚未加载"></label><label>开始（s）<input id="start" type="number" min="0" step="0.01" value="0"></label><label>结束（s）<input id="end" type="number" min="0" step="0.01" value="1"></label><label>目标（s）<input id="target" type="number" min="0" step="0.01" value="2"></label><label>半音<input id="semitones" type="number" min="-12" max="12" value="2" step="1"></label></div>
+  <div class="buttons"><button id="duplicate" disabled><i data-lucide="copy" aria-hidden="true"></i>复制并叠加</button><button id="move" disabled><i data-lucide="move-horizontal" aria-hidden="true"></i>移动片段</button><button id="mute" disabled><i data-lucide="volume-x" aria-hidden="true"></i>静音选区</button><button id="pitch" disabled><i data-lucide="audio-lines" aria-hidden="true"></i>局部变调</button></div>
+  <p class="note" id="hint">请先选择工程。</p>
+ </section>
+ <section class="panel editor" aria-label="编辑记录">
+  <div class="titleline"><h2>操作历史 <small id="count">0 条</small></h2><button id="undo" disabled title="撤销上一步"><i data-lucide="undo-2" aria-hidden="true"></i>撤销</button></div>
+  <ol id="history" class="history"><li>暂无操作</li></ol>
+  <div class="buttons"><button id="clear" disabled>清空编辑</button><button id="export" class="primary" disabled><i data-lucide="download" aria-hidden="true"></i>导出最终 WAV</button><a id="download" href="#" download="sonic-edited.wav" hidden>下载导出文件</a></div>
+  <p id="status" class="status" role="status" aria-live="polite">准备连接服务器…</p>
+ </section>
+</div>
+<footer><span>SONIC · 六轨编辑</span><span>编辑未保存，离开前请导出</span></footer>
+</main>
+<script src="/live/app.js" defer></script>
+</body></html>

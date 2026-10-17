@@ -1,0 +1,42 @@
+# Local credentials and runtime state
+.env
+.env.*
+!.env.example
+.local/
+.runtime/
+.private-connection.json
+private-connection.properties
+local.properties
+*.pem
+*.key
+*.keystore
+*.jks
+
+# Generated data and dependencies
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.log
+data/
+artifacts/
+.gradle/
+.kotlin/
+build/
+node_modules/
+.DS_Store
+Thumbs.db
+
+# Do not commit vendor SDKs, model weights, or application binaries
+android/vendor-repo/**
+*.aar
+*.apk
+*.aab
+*.so
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+backend/web/vendor/
+gpu-audio/vendor/

@@ -1,0 +1,20 @@
+plugins { id 'com.android.application'; id 'org.jetbrains.kotlin.android' }
+def connectionFile = rootProject.file('.private-connection.json')
+def connection = connectionFile.exists() ? new groovy.json.JsonSlurper().parse(connectionFile) : [:]
+android {
+    namespace 'com.sonic.soundstudio'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.sonic.soundstudio'
+        minSdk 26
+        targetSdk 34
+        versionCode 9
+        versionName '0.9-accounts'
+        buildConfigField 'String', 'BACKEND_URL', groovy.json.JsonOutput.toJson(connection.url ?: 'https://example.invalid')
+        buildConfigField 'String', 'APP_ACCESS_TOKEN', groovy.json.JsonOutput.toJson(connection.token ?: '')
+    }
+    buildFeatures { buildConfig true }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    kotlinOptions { jvmTarget='17' }
+}
+dependencies { implementation project(':soundcorebridge'); implementation 'com.google.code.gson:gson:2.10' }

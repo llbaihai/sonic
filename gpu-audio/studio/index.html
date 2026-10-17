@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SONIC Studio · 多轨编辑 MVP</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0c1020; --panel:#151b2c; --panel2:#1a2336; --edge:#2b354b; --text:#edf2ff; --sub:#a4afc4; --accent:#67e5c3; --meta-width:176px; --wave-width:3600px; --lane-height:86px; }
+    * { box-sizing:border-box }
+    html,body {margin:0; min-height:100%; background:var(--bg); color:var(--text); font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,select {font:inherit}
+    button {cursor:pointer}
+    button:disabled {opacity:.45;cursor:not-allowed}
+    button:focus-visible,input:focus-visible,select:focus-visible {outline:2px solid var(--accent);outline-offset:2px}
+    .shell {max-width:1440px; margin:0 auto; padding:20px 22px 42px}
+    .top {display:flex; justify-content:space-between; align-items:center; gap:16px;flex-wrap:wrap;padding-bottom:18px}
+    .brand {display:flex;align-items:center;gap:12px}
+    .mark {width:40px;height:40px;display:grid;place-items:center; border-radius:12px;background:linear-gradient(145deg,#227d86,#73efc4);color:#082229;font-size:25px;font-weight:900}
+    h1 {font-size:22px;letter-spacing:.03em;line-height:1.15;margin:0}
+    .muted {color:var(--sub);font-size:12px}
+    .tag {border:1px solid #335564;color:#8ddfd1;border-radius:16px;padding:3px 9px;font-size:12px}
+    .project-set {display:flex;align-items:center;gap:8px; flex-wrap:wrap}
+    input,select {background:#11182a;color:var(--text);border:1px solid #39465f;border-radius:9px;min-height:38px;padding:7px 9px;min-width:0}
+    input[type=number] {width:91px}
+    input[type=range] {accent-color:var(--accent);min-height:21px;padding:0;border:none}
+    select {max-width:210px}
+    button {border:1px solid #38465f;background:#24314a;color:var(--text);border-radius:9px;padding:9px 13px;min-height:38px;white-space:nowrap}
+    button:hover:not(:disabled) {background:#344562}
+    button.primary {background:#63e4bf;color:#0b2c2b;border-color:#63e4bf;font-weight:700}
+    button.primary:hover:not(:disabled) {background:#94f3d6}
+    button.secondary {background:#162035}
+    button.warn {border-color:#754555;color:#ffbfc7}
+    button.active {border-color:#75edd1;color:#7af3d4;background:#1a3a40}
+    .board {background:var(--panel);border:1px solid var(--edge);border-radius:16px;overflow:hidden;margin-bottom:14px}
+    .board-head {padding:17px 18px;border-bottom:1px solid var(--edge);display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+    .board-head h2 {font-size:15px;margin:0}
+    .play-row {display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px}
+    audio {width:min(570px,100%);height:40px;flex:1 1 260px}
+    .status {font-size:12px;color:#b9c6de}
+    .status.error {color:#ffaab7}
+    .status.success {color:#76e6c5}
+    .bar {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:11px 15px;border-bottom:1px solid var(--edge)}
+    .bar .group {display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .bar label {color:var(--sub);font-size:12px}
+    .timeline {overflow-x:auto;overflow-y:hidden; scrollbar-color:#4e6c86 #171e2f;min-height:175px}
+    .editor-row {display:flex;width:calc(var(--meta-width) + var(--wave-width));min-width:100%;}
+    .meta {width:var(--meta-width);min-width:var(--meta-width);height:var(--lane-height);position:sticky;left:0;background:#192236;z-index:3;border-right:1px solid #3e4b64;border-bottom:1px solid #303c50;padding:10px 12px}
+    .meta strong {font-size:13px;display:block;line-height:1.1}
+    .meta .first {display:flex;align-items:center;gap:8px}
+    .dot {width:9px;height:9px;border-radius:3px;flex:0 0 auto}
+    .meta.active {background:#203a41;box-shadow:inset 3px 0 0 var(--accent)}
+    .meta small {font-size:11px;color:#adbad0}
+    .meta .controls {display:flex;align-items:center;gap:6px;margin-top:5px}
+    .meta button {font-size:11px;padding:3px 6px;min-height:25px;border-radius:6px}
+    .meta input[type=range] {width:76px;max-width:100%;}
+    .ruler-row .meta, .ruler {height:40px}
+    .ruler-row .meta {display:flex;align-items:center;color:var(--sub);font-size:12px}
+    .ruler {width:var(--wave-width);position:relative;background:#172238; border-bottom:1px solid #344259}
+    .ruler-tick {position:absolute;top:0;height:100%; border-left:1px solid #45536a;padding:5px 0 0 5px;font-size:11px;color:#9aabc3}
+    .lane {position:relative;flex-shrink:0;width:var(--wave-width);height:var(--lane-height);border-bottom:1px solid #303c50;cursor:crosshair;background:#11192a}
+    .lane:nth-child(even) {background:#121b2c}
+    .wave-svg {display:block;width:100%;height:100%; pointer-events:none}
+    .gridlines {position:absolute;inset:0;pointer-events:none;}
+    .gridlines i {position:absolute;top:0;bottom:0;border-left:1px solid #34405858}
+    .playhead {position:absolute;top:0;bottom:0;width:2px;background:#f4d28b;pointer-events:none;z-index:2;box-shadow:0 0 4px #e8bf57}
+    .selection {position:absolute;top:4px;bottom:4px;background:#67e5c32b;border:1px solid #8effdb;z-index:1;pointer-events:none}
+    .ghost {position:absolute;top:6px;bottom:6px;min-width:9px;background:#ffdf8161;border:1px dashed #ffe4a1;z-index:4;cursor:grab;touch-action:none;display:grid;place-items:center;color:#fff2c3;font-size:11px;user-select:none}
+    .ghost:active {cursor:grabbing}
+    .editor-placeholder {padding:62px 18px;text-align:center;color:var(--sub)}
+    .below {display:grid;grid-template-columns:minmax(250px,1fr) minmax(300px,1.2fr);gap:14px}
+    .card-body {padding:16px 18px}
+    .card-body h2 {margin:0 0 12px;font-size:16px}
+    .desc {color:var(--sub);font-size:12px;margin:8px 0 14px}
+    .fields {display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px}
+    .field {display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--sub)}
+    .actions {display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+    .edits {list-style:none;padding:0;margin:10px 0 0;max-height:265px;overflow-y:auto}
+    .edits li {display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #293549;padding:9px 0;font-size:12px}
+    .edits li span {min-width:0;overflow-wrap:anywhere}
+    .edits li button {padding:4px 10px;min-height:28px}
+    .empty {color:var(--sub);font-size:12px;padding:12px 0}
+    .foot {color:#7f8da6;font-size:12px;padding:2px 5px;line-height:1.7}
+    .small-link {color:#a4f1d8;text-underline-offset:3px}
+    @media (max-width:850px) { .below {grid-template-columns:1fr} }
+    @media (max-width:600px) { .shell{padding:12px 8px 25px}.top{padding:8px 7px 15px}.board-head{padding:14px 12px}.bar{padding:11px 9px}.card-body{padding:13px 12px}:root{--meta-width:123px;--lane-height:86px}.meta{padding:10px 7px}.meta input[type=range]{width:67px}.meta strong{font-size:12px}.tag{display:none}.project-set select{max-width:135px} button{padding:9px 10px} }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brand"><span class="mark" aria-hidden="true">♫</span><div><h1>SONIC <span style="font-weight:400;color:#a4afc4">Studio</span></h1><div class="muted">多音轨编辑 · MVP 体验版 <span class="tag">连接 V0.3 算法</span></div></div></div>
+    <div class="project-set"><label for="projectSelect" class="muted">歌曲工程</label><select id="projectSelect" aria-label="已注册歌曲"><option value="">正在查询…</option></select><button id="reloadBtn" type="button">加载工程</button></div>
+  </header>
+
+  <section class="board" aria-label="播放控制">
+    <div class="board-head"><div><h2>🎧 音乐试听</h2><div class="muted">原曲与渲染结果可切换；单轨试听可在音轨左侧打开</div></div><div class="group" style="display:flex;gap:8px;flex-wrap:wrap"><button id="originalBtn" class="active" type="button" disabled>原曲</button><button id="editedBtn" type="button" disabled>编辑后</button><a id="downloadLink" class="small-link" style="align-self:center;display:none" href="#" download="sonic-edited.wav">下载 WAV ↓</a></div></div>
+    <div class="card-body"><div class="play-row"><audio id="audioPlayer" controls preload="none" aria-label="音乐播放器"></audio><span id="audioHint" class="status">请先加载歌曲工程</span></div></div>
+  </section>
+
+  <section class="board" aria-label="多轨编辑时间轴">
+    <div class="bar"><div class="group"><button id="selectModeBtn" type="button" disabled>✂ 框选片段</button><span class="muted">先选择音轨，再点击「框选片段」拖出范围</span></div><div class="group"><label for="zoomRange">时间轴缩放</label><input id="zoomRange" type="range" min="20" max="100" value="48" step="4" aria-label="时间轴缩放"><span id="zoomLabel" class="muted">48px/s</span></div></div>
+    <div id="timelineScroll" class="timeline" aria-label="音轨时间轴，左右滚动查看歌曲"><div id="timelineContent"><div class="editor-placeholder">连接后端并加载音轨波形…</div></div></div>
+  </section>
+
+  <div class="below">
+    <section class="board"><div class="card-body">
+      <h2>✏️ 编辑所选片段</h2>
+      <p class="desc">点击音轨左侧可选中音轨；在波形上框选，或直接输入开始与结束时间。复制／移动支持拖动黄色目标片段。</p>
+      <div class="fields">
+        <label class="field">所选音轨<input id="selectedName" type="text" value="尚未加载" readonly style="width:155px"></label>
+        <label class="field">开始（秒）<input id="startTime" type="number" min="0" step="0.1" value="0"></label>
+        <label class="field">结束（秒）<input id="endTime" type="number" min="0" step="0.1" value="2"></label>
+        <label class="field">目标时间（秒）<input id="targetTime" type="number" min="0" step="0.1" value="3"></label>
+        <label class="field">变调（半音）<input id="semitones" type="number" min="-12" max="12" step="1" value="2"></label>
+      </div>
+      <div class="actions"><button id="duplicateBtn" type="button" disabled>📋 复制片段</button><button id="moveBtn" type="button" disabled>↔ 移动片段</button><button id="pitchBtn" type="button" disabled>🎤 局部变调</button><button id="muteBtn" type="button" disabled>🔇 静音片段</button></div>
+      <div id="pendingBox" style="display:none;border:1px solid #a6884d;border-radius:10px;background:#292738;padding:12px;margin-top:12px">
+        <strong id="pendingLabel">调整目标位置</strong><p class="desc">拖动上方波形上的黄色片段，或修改「目标时间」，确定后添加编辑指令。</p>
+        <div class="actions"><button id="confirmPendingBtn" class="primary" type="button">确认添加</button><button id="cancelPendingBtn" class="secondary" type="button">取消</button></div>
+      </div>
+      <p id="editHint" class="status">等待选择音轨。</p>
+    </div></section>
+    <section class="board"><div class="card-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><h2>📑 编辑记录 <small id="editCount" class="muted">0 条</small></h2><button id="undoBtn" type="button" disabled>撤销最后一步</button></div>
+      <p class="desc">所有操作只保存为 JSON，原始 WAV 不会被覆盖。每条轨道的音量滑块也会写入编辑记录。</p>
+      <ol id="editList" class="edits"><li class="empty">目前没有编辑操作</li></ol>
+      <div class="actions" style="padding-top:10px;border-top:1px solid #2b354b"><button id="renderBtn" class="primary" type="button" disabled>✨ 混音并生成 WAV</button><button id="clearBtn" class="secondary" type="button" disabled>清空操作</button></div>
+      <div id="status" role="status" aria-live="polite" class="status">服务连接中…</div>
+    </div></section>
+  </div>
+  <footer class="foot">SONIC Studio MVP · 开发阶段仅供本地 SSH 端口转发测试。当前只在点击「混音并生成 WAV」后调用后端处理；拖动时间轴不会实时修改音频。手机端触屏框选和拖动为实验性交互。</footer>
+</div>
+<script>
+(() => {
+  'use strict';
+  const NAMES = { vocals:'人声',drums:'鼓组',bass:'贝斯',piano:'钢琴',guitar:'吉他',other:'其他' };
+  const COLORS = { vocals:'#72e5c9',drums:'#f9bd79',bass:'#95bcfa',piano:'#b7a5f9',guitar:'#f39bb5',other:'#9bc4c8' };
+  const TRACKS = Object.keys(NAMES);
+  const $ = id => document.getElementById(id);
+  const state = {project:null,duration:0,metadata:null,peaks:{},track:'drums',start:0,end:2,target:3,zoom:48,edits:[],selectMode:false, pending:null, output:null,playerKind:'original',loading:false};
+  const clamp = (n,min,max) => Math.min(max,Math.max(min,n));
+  const fmt = v => Number.isFinite(v) ? v.toFixed(2).replace(/\.00$/,'') : '—';
+  const pathTrack = name => `/projects/${encodeURIComponent(state.project)}/audio/${name}`;
+  function message(txt,type='') {const el=$('status');el.textContent=txt;el.className='status '+type;}
+  function hint(txt,type='') {const el=$('editHint');el.textContent=txt;el.className='status '+type;}
+  async function api(path, opts={}) {
+    const res=await fetch(path,opts);
+    if (!res.ok) {
+      const txt=await res.text();let detail=txt;
+      try {const data=JSON.parse(txt);detail=typeof data.detail==='string'?data.detail:JSON.stringify(data.detail||data);}catch{}
+      throw new Error(`HTTP ${res.status}：${detail.slice(0,360)}`);
+    }
+    return res.json();
+  }
+  function timeX(t){return clamp(t,0,state.duration)*state.zoom;}
+  function fromEventTime(ev, lane) {const r=lane.getBoundingClientRect();return clamp((ev.clientX-r.left)/state.zoom,0,state.duration);}
+  function validateSelection(){
+    const start=Number($('startTime').value), end=Number($('endTime').value);
+    if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>state.duration+0.001||end<=start) throw new Error('请输入有效的时间范围：0 ≤ 开始 < 结束 ≤ 歌曲时长');
+    return {start,end};
+  }
+  function validTarget(start,end) {
+    const target=Number($('targetTime').value);
+    if(!Number.isFinite(target)||target<0||target+(end-start)>300.001) throw new Error('目标时间无效，或目标片段超过 300 秒上限');
+    return target;
+  }
+  function showSelectionInputs(){ $('selectedName').value=NAMES[state.track]||state.track;$('startTime').value=fmt(state.start);$('endTime').value=fmt(state.end);$('targetTime').value=fmt(state.target); }
+  function chooseTrack(name){ if(!TRACKS.includes(name))return;state.track=name;state.pending=null;showPending();showSelectionInputs();updateSelectionVisuals();hint(`已选择「${NAMES[name]}」，可框选片段或调整整轨音量。`);}
+  function setSelectMode(enabled){state.selectMode=enabled;$('selectModeBtn').classList.toggle('active',enabled);$('selectModeBtn').textContent=enabled?'✓ 在波形上拖动选择':'✂ 框选片段';document.querySelectorAll('.lane').forEach(l=>l.style.touchAction=enabled?'none':'pan-x pan-y');}
+  function waveformSvg(peaks,color){
+    const ns='http://www.w3.org/2000/svg';const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 1500 90');svg.setAttribute('preserveAspectRatio','none');svg.classList.add('wave-svg');svg.setAttribute('aria-hidden','true');
+    const line=document.createElementNS(ns,'line');line.setAttribute('x1','0');line.setAttribute('y1','45');line.setAttribute('x2','1500');line.setAttribute('y2','45');line.setAttribute('stroke','#435069');line.setAttribute('stroke-width','.5');svg.appendChild(line);
+    const n=peaks.length;const max=Math.max(...peaks,0.003);const upper=[],lower=[];
+    for(let i=0;i<n;i++){const x=(i+.5)*1500/n;const a=Math.min(39,(peaks[i]/max)*38);upper.push(`${x.toFixed(2)} ${(45-a).toFixed(2)}`);lower.push(`${x.toFixed(2)} ${(45+a).toFixed(2)}`);}
+    const path=document.createElementNS(ns,'path');path.setAttribute('d',`M ${upper.join(' L ')} L ${lower.reverse().join(' L ')} Z`);path.setAttribute('fill',color);path.setAttribute('fill-opacity','.82');svg.appendChild(path);return svg;
+  }
+  function updateSelectionVisuals(){
+    for(const row of document.querySelectorAll('.editor-row[data-track]')) {
+      const name=row.dataset.track;row.querySelector('.meta').classList.toggle('active',name===state.track);
+      const s=row.querySelector('.selection');s.style.display=(name===state.track)?'block':'none';s.style.left=`${timeX(state.start)}px`;s.style.width=`${Math.max(1,(state.end-state.start)*state.zoom)}px`;
+      const old=row.querySelector('.ghost');if(old)old.remove();
+      if(state.pending && state.pending.track===name) {const g=document.createElement('div');g.className='ghost';g.textContent='拖动目标';g.title='左右拖动确定音频复制或移动后的目标位置';g.style.left=`${state.pending.target*state.zoom}px`;g.style.width=`${Math.max(9,(state.pending.end-state.pending.start)*state.zoom)}px`;row.querySelector('.lane').appendChild(g);installGhostDrag(g);}
+    }
+    showSelectionInputs();
+  }
+  function installGhostDrag(ghost){
+    ghost.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault();ghost.setPointerCapture(e.pointerId);const begin=e.clientX,initial=state.pending.target;
+      const move=ev=>{const len=state.pending.end-state.pending.start;state.pending.target=clamp(initial+(ev.clientX-begin)/state.zoom,0,300-len);state.target=state.pending.target;$('targetTime').value=fmt(state.target);ghost.style.left=`${state.pending.target*state.zoom}px`;};
+      const done=()=>{ghost.removeEventListener('pointermove',move);ghost.removeEventListener('pointerup',done);ghost.removeEventListener('pointercancel',done);};
+      ghost.addEventListener('pointermove',move);ghost.addEventListener('pointerup',done);ghost.addEventListener('pointercancel',done);
+    });
+  }
+  function rulerMarks(parent,isRuler){const step=state.zoom>=68?2:state.zoom<28?10:5;for(let t=0;t<=state.duration;t+=step){const x=document.createElement(isRuler?'span':'i');x.style.left=`${timeX(t)}px`;if(isRuler){x.className='ruler-tick';x.textContent=`${t}s`;}parent.appendChild(x);}}
+  function buildTimeline(){
+    const holder=$('timelineContent');holder.replaceChildren();const width=Math.max(160,Math.ceil(state.duration*state.zoom));holder.style.setProperty('--wave-width',`${width}px`);
+    const rulerRow=document.createElement('div');rulerRow.className='editor-row ruler-row';const railMeta=document.createElement('div');railMeta.className='meta';railMeta.textContent='音轨 / 时间（秒）';rulerRow.appendChild(railMeta);const ruler=document.createElement('div');ruler.className='ruler';rulerMarks(ruler,true);rulerRow.appendChild(ruler);holder.appendChild(rulerRow);
+    for(const name of TRACKS){
+      const row=document.createElement('div');row.className='editor-row';row.dataset.track=name;const meta=document.createElement('div');meta.className='meta';
+      const first=document.createElement('div');first.className='first';const dot=document.createElement('span');dot.className='dot';dot.style.background=COLORS[name];const label=document.createElement('strong');label.textContent=NAMES[name];first.append(dot,label);meta.appendChild(first);
+      const small=document.createElement('small');small.textContent=name;meta.appendChild(small);
+      const ctl=document.createElement('div');ctl.className='controls';const solo=document.createElement('button');solo.type='button';solo.textContent='试听';solo.title='播放单独音轨';solo.addEventListener('click',e=>{e.stopPropagation();chooseTrack(name);playSource(name);});ctl.appendChild(solo);
+      const slider=document.createElement('input');slider.type='range';slider.min='-24';slider.max='12';slider.step='1';slider.value=String(gainValue(name));slider.title='轨道增益（dB）';slider.setAttribute('aria-label',`${NAMES[name]}音量 dB`);
+      const db=document.createElement('small');db.textContent=slider.value+'dB';db.style.whiteSpace='nowrap';
+      slider.addEventListener('input',()=>{db.textContent=slider.value+'dB';});slider.addEventListener('change',()=>{setGain(name,Number(slider.value));});ctl.append(slider,db);meta.appendChild(ctl);
+      meta.addEventListener('click',e=>{if(e.target===slider||e.target===solo)return;chooseTrack(name)});
+      row.appendChild(meta);
+      const lane=document.createElement('div');lane.className='lane';lane.dataset.track=name;lane.style.touchAction=state.selectMode?'none':'pan-x pan-y';
+      const grid=document.createElement('div');grid.className='gridlines';rulerMarks(grid,false);lane.appendChild(grid);
+      lane.appendChild(waveformSvg(state.peaks[name]||[0],COLORS[name]));
+      const selection=document.createElement('div');selection.className='selection';lane.appendChild(selection);
+      const ph=document.createElement('div');ph.className='playhead';ph.style.left='0px';lane.appendChild(ph);
+      installLaneSelect(lane,name);row.appendChild(lane);holder.appendChild(row);
+    }
+    updateSelectionVisuals();syncPlayhead();
+  }
+  function installLaneSelect(lane,name){
+    let initial=null;
+    lane.addEventListener('pointerdown',ev=>{
+      if(!state.selectMode||ev.button>0)return;
+      ev.preventDefault();state.pending=null;showPending();state.track=name;initial=fromEventTime(ev,lane);state.start=initial;state.end=Math.min(state.duration,initial+.2);lane.setPointerCapture(ev.pointerId);updateSelectionVisuals();
+    });
+    lane.addEventListener('pointermove',ev=>{if(initial===null)return;const t=fromEventTime(ev,lane);state.start=Math.min(initial,t);state.end=Math.max(initial,t);state.end=Math.min(state.duration,Math.max(state.start+.1,state.end));state.target=clamp(state.end+.7,0,Math.max(0,300-(state.end-state.start)));updateSelectionVisuals();});
+    const done=()=>{if(initial===null)return;initial=null;setSelectMode(false);updateSelectionVisuals();hint(`已选中 ${NAMES[name]} ${fmt(state.start)}～${fmt(state.end)} 秒。请选择编辑操作。`,'success');};
+    lane.addEventListener('pointerup',done);lane.addEventListener('pointercancel',done);
+    lane.addEventListener('click',e=>{if(!state.selectMode && !state.pending && !e.defaultPrevented){state.track=name;updateSelectionVisuals();}});
+  }
+  function gainValue(name){const gains=state.edits.filter(e=>e.track===name&&e.operation==='gain'&&e.start===undefined);return gains.length?gains[gains.length-1].gain_db:0;}
+  function setGain(name,val){ if(!state.project)return;state.edits=state.edits.filter(e=>!(e.track===name&&e.operation==='gain'&&e.start===undefined));if(val!==0) state.edits.push({track:name,operation:'gain',gain_db:val});editsChanged();hint(`${NAMES[name]}整轨增益已设为 ${val} dB。`,'success');}
+  function editsChanged(){state.output=null; $('editedBtn').disabled=true;$('downloadLink').style.display='none';$('undoBtn').disabled=state.edits.length===0;$('clearBtn').disabled=state.edits.length===0; $('editCount').textContent=`${state.edits.length} 条`;renderEdits();message(state.edits.length?`已保存 ${state.edits.length} 条编辑指令，点击「混音并生成 WAV」试听最终效果。`:'暂无编辑指令，可直接导出原始歌曲。');buildTimeline();}
+  function editDescription(e){const part=e.start===undefined?'整轨':`${fmt(e.start)}～${fmt(e.end)}s`;
+    if(e.operation==='gain')return `${part} 音量 ${e.gain_db>0?'+':''}${e.gain_db} dB`;
+    if(e.operation==='pitch')return `${part} 变调 ${e.semitones>0?'+':''}${e.semitones} 半音`;
+    if(e.operation==='mute')return `${part} 静音`;
+    return `${part} ${e.operation==='duplicate'?'复制叠加':'移动叠加'} → ${fmt(e.target)}s`;
+  }
+  function renderEdits(){const list=$('editList');list.replaceChildren();if(!state.edits.length){const empty=document.createElement('li');empty.className='empty';empty.textContent='目前没有编辑操作';list.appendChild(empty);return;}
+    state.edits.forEach((edit,index)=>{const li=document.createElement('li');const info=document.createElement('span');info.textContent=`${index+1}. ${NAMES[edit.track]} · ${editDescription(edit)}`;const rm=document.createElement('button');rm.type='button';rm.textContent='删除';rm.setAttribute('aria-label',`删除第 ${index+1} 条操作`);rm.addEventListener('click',()=>{state.edits.splice(index,1);editsChanged();});li.append(info,rm);list.appendChild(li);});
+  }
+  function showPending(){const el=$('pendingBox');el.style.display=state.pending?'block':'none';if(state.pending)$('pendingLabel').textContent=state.pending.operation==='duplicate'?'正在设置复制目标':'正在设置移动目标';}
+  function startPending(operation){try{ensureLoaded();const {start,end}=validateSelection();const target=validTarget(start,end);state.start=start;state.end=end;state.target=target;state.pending={operation,track:state.track,start,end,target};showPending();updateSelectionVisuals();hint('请拖动时间轴上的黄色目标片段，或在左侧修改目标时间，再点「确认添加」。');}catch(e){hint(e.message,'error');}}
+  function ensureLoaded(){if(!state.project)throw new Error('请先加载歌曲工程');}
+  function addEdit(operation){try{ensureLoaded();const {start,end}=validateSelection();let edit={track:state.track,operation,start,end};if(operation==='pitch'){const v=Number($('semitones').value);if(!Number.isFinite(v)||Math.abs(v)>12)throw new Error('变调范围为 -12～+12 半音');if(end-start<.2)throw new Error('变调片段至少 0.2 秒');edit.semitones=v;}
+      state.edits.push(edit);editsChanged();hint(`${NAMES[state.track]}已添加${operation==='pitch'?'变调':'静音'}操作。`,'success');}catch(e){hint(e.message,'error');}}
+  function setAudio(url,kind){const audio=$('audioPlayer');const t=audio.currentTime||0;audio.pause();audio.src=url;audio.load();if(Number.isFinite(t)&&t>0)audio.addEventListener('loadedmetadata',()=>{audio.currentTime=Math.min(t,Math.max(0,audio.duration-.1));},{once:true});state.playerKind=kind;$('audioHint').textContent=kind==='original'?'正在试听 YuE2 原曲':kind==='edited'?'正在试听编辑后整首歌曲':`正在单独试听 ${NAMES[kind]}`;$('originalBtn').classList.toggle('active',kind==='original');$('editedBtn').classList.toggle('active',kind==='edited');}
+  function playSource(name){if(!state.project)return;setAudio(pathTrack(name),name);const player=$('audioPlayer');player.play().catch(()=>{});}
+  function syncPlayhead(){const player=$('audioPlayer');const t=player.currentTime||0;document.querySelectorAll('.playhead').forEach(el=>el.style.left=`${timeX(t)}px`);}
+  async function render(){if(!state.project||state.loading)return;state.loading=true;$('renderBtn').disabled=true;message('正在服务器进行差分混音… 变调和导出可能需要一些时间。');
+    try{const response=await api(`/projects/${encodeURIComponent(state.project)}/render`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({edits:state.edits})});state.output=response;$('editedBtn').disabled=false;const link=$('downloadLink');link.href=response.download_url;link.style.display='inline';message(`已导出 ${response.duration}s WAV，共 ${response.operations_applied} 个操作${response.master_normalized_to_avoid_clipping?'；为防止削波已自动降低整曲峰值':''}。`,'success');setAudio(response.download_url,'edited');
+    }catch(e){message(`混音失败：${e.message}`,'error');}finally{state.loading=false;$('renderBtn').disabled=false;}
+  }
+  function enableButtons(yes){['selectModeBtn','originalBtn','duplicateBtn','moveBtn','pitchBtn','muteBtn','renderBtn'].forEach(id=>$(id).disabled=!yes);$('undoBtn').disabled=!yes||!state.edits.length;$('clearBtn').disabled=!yes||!state.edits.length;}
+  async function loadProject(project){if(!project)return;enableButtons(false);message('正在加载工程和六条音轨的波形…');state.project=project;state.edits=[];state.peaks={};state.pending=null;state.output=null;showPending();$('editedBtn').disabled=true;$('downloadLink').style.display='none';
+    try{const metadata=await api(`/projects/${encodeURIComponent(project)}/tracks`);state.metadata=metadata;state.duration=metadata.original.duration;if(!state.duration)throw new Error('工程时长无效');const result=await Promise.all(TRACKS.map(async name=>[name,(await api(`/studio-api/projects/${encodeURIComponent(project)}/waveforms/${name}`)).peaks]));for(const [name,peaks] of result)state.peaks[name]=peaks;
+      state.track='drums';state.start=0;state.end=Math.min(2,state.duration);state.target=Math.min(3,state.duration);state.zoom=Number($('zoomRange').value);buildTimeline();renderEdits();enableButtons(true);setAudio(pathTrack('original'),'original');message(`已加载 ${project}：${fmt(state.duration)} 秒，6 条音轨。`,'success');hint('可点击鼓轨左侧的音量滑块，或框选一个鼓点后复制到新位置。');$('editCount').textContent='0 条';
+    }catch(e){enableButtons(false);$('timelineContent').innerHTML='<div class="editor-placeholder">工程加载失败，请检查 V0.3 工程是否已注册。</div>';message(`加载失败：${e.message}`,'error');}
+  }
+  async function bootstrap(){try{const list=await api('/studio-api/projects');const select=$('projectSelect');select.replaceChildren();if(!list.projects.length){const opt=document.createElement('option');opt.textContent='没有已注册工程';opt.value='';select.appendChild(opt);message('没有已注册的歌曲。请先用 sonic_mvp.py register 或 separate 创建工程。','error');return;}
+      for(const p of list.projects){const opt=document.createElement('option');opt.value=p.id;opt.textContent=`${p.id} (${fmt(p.duration)}s)`;select.appendChild(opt);}if(list.projects.some(p=>p.id==='song001'))select.value='song001';await loadProject(select.value);
+    }catch(e){message(`无法连接服务：${e.message}`,'error');$('projectSelect').innerHTML='<option>连接失败</option>';}
+  }
+  $('reloadBtn').addEventListener('click',()=>loadProject($('projectSelect').value));
+  $('originalBtn').addEventListener('click',()=>state.project&&setAudio(pathTrack('original'),'original'));
+  $('editedBtn').addEventListener('click',()=>state.output&&setAudio(state.output.download_url,'edited'));
+  $('selectModeBtn').addEventListener('click',()=>{if(!state.project)return;setSelectMode(!state.selectMode);hint(state.selectMode?'在任意音轨波形上从开始拖到结束，然后松开手指或鼠标。':'已退出框选模式。');});
+  $('zoomRange').addEventListener('input',()=>{const sc=$('timelineScroll'),proportion=sc.scrollLeft/Math.max(1,state.zoom);state.zoom=Number($('zoomRange').value);$('zoomLabel').textContent=state.zoom+'px/s';if(state.project){buildTimeline();sc.scrollLeft=proportion*state.zoom;}});
+  for(const id of ['startTime','endTime']) $(id).addEventListener('change',()=>{if(!state.project)return;try{const {start,end}=validateSelection();state.start=start;state.end=end;state.pending=null;showPending();updateSelectionVisuals();}catch(e){hint(e.message,'error');}});
+  $('targetTime').addEventListener('change',()=>{if(!state.project)return;try{const t=validTarget(state.start,state.end);state.target=t;if(state.pending)state.pending.target=t;updateSelectionVisuals();}catch(e){hint(e.message,'error');}});
+  $('duplicateBtn').addEventListener('click',()=>startPending('duplicate'));
+  $('moveBtn').addEventListener('click',()=>startPending('move'));
+  $('pitchBtn').addEventListener('click',()=>addEdit('pitch'));
+  $('muteBtn').addEventListener('click',()=>addEdit('mute'));
+  $('cancelPendingBtn').addEventListener('click',()=>{state.pending=null;showPending();updateSelectionVisuals();});
+  $('confirmPendingBtn').addEventListener('click',()=>{if(!state.pending)return;try{const p=state.pending;const t=validTarget(p.start,p.end);state.edits.push({track:p.track,operation:p.operation,start:p.start,end:p.end,target:t});state.pending=null;showPending();editsChanged();hint(`${NAMES[p.track]}已添加${p.operation==='duplicate'?'复制':'移动'}操作，目标 ${fmt(t)} 秒。`,'success');}catch(e){hint(e.message,'error');}});
+  $('undoBtn').addEventListener('click',()=>{state.edits.pop();editsChanged();});
+  $('clearBtn').addEventListener('click',()=>{state.edits=[];editsChanged();});
+  $('renderBtn').addEventListener('click',render);
+  $('audioPlayer').addEventListener('timeupdate',syncPlayhead);
+  $('audioPlayer').addEventListener('seeked',syncPlayhead);
+  bootstrap();
+})();
+</script>
+</body>
+</html>

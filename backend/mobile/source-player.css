@@ -1,0 +1,4 @@
+.source-transport{display:flex;align-items:center;gap:10px;margin-top:7px;min-width:0}
+.source-transport input[type=range]{width:100%;min-width:0;height:28px;margin:0;accent-color:#8069a4}
+.source-transport small{flex-shrink:0;min-width:63px;font-size:11px;color:#625a6d;font-variant-numeric:tabular-nums}
+.sound .preview[data-mode=playing]{background:#eee9f4;border-color:#a994c4}
