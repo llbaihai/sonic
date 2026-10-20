@@ -12,16 +12,7 @@ SONIC 是一个从生活录音和哼唱出发的 Android 音乐创作项目：�
 
 [观看演示视频（约 47 秒）](docs/media/demo.mp4)
 
-<table>
-  <tr>
-    <td><img src="docs/media/screen-1.jpg" alt="声音库与素材选择" width="220"></td>
-    <td><img src="docs/media/screen-2.jpg" alt="录音豆搜索与连接" width="220"></td>
-    <td><img src="docs/media/screen-4.jpg" alt="我的作品" width="220"></td>
-  </tr>
-  <tr><td>声音库与多素材选择</td><td>录音豆搜索与连接</td><td>作品管理与再创作</td></tr>
-</table>
-
-![六轨编辑器](docs/media/screen-5.jpg)
+![SONIC 产品展示板](docs/media/showcase-board.jpg)
 
 截图和视频来自团队提供的 App 演示，不代表量化音质评测。仓库不分发带旧服务器连接凭据的赛事 APK。
 
